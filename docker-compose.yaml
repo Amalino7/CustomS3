@@ -20,5 +20,18 @@ services:
             - KC_DB_USERNAME=${POSTGRES_USER}
             - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
 
+    minio:
+      image: minio/minio:latest
+      container_name: minio
+      env_file:
+        - .env
+      ports:
+        - '9000:9000'
+        - '9001:9001'
+      volumes:
+        - minio-data:/data
+      command: server /data --console-address ":9001"
+
 volumes:
     postgres_data:
+    minio-data:
