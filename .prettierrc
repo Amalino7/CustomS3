@@ -1,0 +1,18 @@
+{
+	"arrowParens": "avoid",
+	"tabWidth": 4,
+	"bracketSpacing": true,
+	"useTabs": true,
+	"singleQuote": false,
+	"semi": true,
+	"bracketSameLine": true,
+	"jsxSingleQuote": false,
+	"quoteProps": "consistent",
+	"endOfLine": "lf",
+	"overrides": [
+		{
+			"files": ".prettierrc",
+			"options": { "parser": "json" }
+		}
+	]
+}
