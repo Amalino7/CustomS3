@@ -2,18 +2,20 @@ services:
     keycloak_db:
         image: postgres:latest
         container_name: keycloak_db
-        env_file: ".env"
         ports:
             - "5433:5432"
+        env_file: ".env"
+        environment:
+            - POSTGRES_DB=keycloak
         volumes:
             - postgres_data:/var/lib/postgresql/data
     keycloak:
         image: quay.io/keycloak/keycloak:26.0.7
         container_name: keycloak
         command: start-dev
-        env_file: ".env"
         ports:
             - "8080:8080"
+        env_file: ".env"
         environment:
             - KC_DB=postgres
             - KC_DB_URL_HOST=keycloak_db
@@ -21,16 +23,16 @@ services:
             - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
 
     minio:
-      image: minio/minio:latest
-      container_name: minio
-      env_file:
-        - .env
-      ports:
-        - '9000:9000'
-        - '9001:9001'
-      volumes:
-        - minio-data:/data
-      command: server /data --console-address ":9001"
+        image: minio/minio:latest
+        container_name: minio
+        env_file:
+            - .env
+        ports:
+            - "9000:9000"
+            - "9001:9001"
+        volumes:
+            - minio-data:/data
+        command: server /data --console-address ":9001"
 
 volumes:
     postgres_data:
