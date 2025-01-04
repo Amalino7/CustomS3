@@ -1,11 +1,13 @@
 import { Module } from "@nestjs/common";
-import { AppController } from "./app.controller";
-import { AppService } from "./app.service";
-import { MinioClientModule } from './minio-client/minio-client.module';
+import { MinioClientModule } from "./minio-client/minio-client.module";
+import { FilesModule } from "./files/files.module";
+import { ConfigModule } from "@nestjs/config";
 
 @Module({
-	imports: [MinioClientModule],
-	controllers: [AppController],
-	providers: [AppService],
+	imports: [
+		ConfigModule.forRoot({ isGlobal: true }),
+		MinioClientModule,
+		FilesModule,
+	],
 })
 export class AppModule {}

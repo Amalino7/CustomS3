@@ -1,68 +1,133 @@
-import { Injectable, Logger, HttpException, HttpStatus } from "@nestjs/common";
+import { Injectable, BadRequestException } from "@nestjs/common";
 import { MinioService } from "nestjs-minio-client";
-import { Stream } from "stream";
-import { config } from "./config";
 import { BufferedFile } from "./file.model";
-import * as crypto from "crypto";
 
 @Injectable()
 export class MinioClientService {
-	private readonly logger: Logger;
-	private readonly baseBucket = config.MINIO_BUCKET;
+	private readonly baseBucket = "default";
 
-	get client() {
+	private get client() {
 		return this.minio.client;
 	}
 
-	constructor(private readonly minio: MinioService) {
-		this.logger = new Logger("MinioStorageService");
-	}
+	constructor(private readonly minio: MinioService) {}
 
-	async upload(file: BufferedFile, baseBucket: string = this.baseBucket) {
-		let temp_filename = Date.now().toString();
-		let hashedFileName = crypto
-			.createHash("md5")
-			.update(temp_filename)
-			.digest("hex");
-		let ext = file.originalname.substring(
-			file.originalname.lastIndexOf("."),
-			file.originalname.length,
-		);
-
-		let filename = hashedFileName + ext;
-		const fileName: string = `${filename}`;
+	async upload(file: BufferedFile, bucket: string = this.baseBucket) {
 		const fileBuffer = file.buffer;
 
-		this.client.putObject(baseBucket, fileName, fileBuffer).catch(err => {
-			this.logger.log(err);
-			throw new HttpException(
-				"Error uploading file",
-				HttpStatus.BAD_REQUEST,
-			);
-		});
+		const bucketExists = await this.client.bucketExists(bucket);
+
+		if (!bucketExists) {
+			await this.client.makeBucket(bucket).catch(error => {
+				console.log(error);
+				throw new BadRequestException("Error creating bucket");
+			});
+		}
+
+		// if the file already exists, throw an error
+		const fileExists = await this.client
+			.statObject(bucket, file.originalname)
+			.catch(error => {
+				if (error.code === "NotFound") {
+					return false;
+				}
+
+				console.log(error);
+				throw new BadRequestException("Error uploading file");
+			});
+
+		if (fileExists) {
+			throw new BadRequestException("File already exists");
+		}
+
+		this.client
+			.putObject(bucket, file.originalname, fileBuffer, {
+				"Content-Type": file.mimetype,
+			})
+			.catch(error => {
+				console.log(error);
+				throw new BadRequestException("Error uploading file");
+			});
 
 		return {
-			url: `${config.MINIO_ENDPOINT}:${config.MINIO_PORT}/${config.MINIO_BUCKET}/${filename}`,
+			bucket: bucket,
+			fileName: file.originalname,
 		};
 	}
 
-	async delete(objetName: string, baseBucket: string = this.baseBucket) {
-		this.client.removeObject(baseBucket, objetName).catch(err => {
-			this.logger.log(err);
-			throw new HttpException(
-				"Oops Something wrong happend",
-				HttpStatus.BAD_REQUEST,
-			);
-		});
+	async get(objectName: string, bucket: string = this.baseBucket) {
+		const stat = await this.client
+			.statObject(bucket, objectName)
+			.catch(error => {
+				if (error.code === "NotFound") {
+					throw new BadRequestException("File does not exist");
+				}
+
+				console.log(error);
+				throw new BadRequestException("Oops Something wrong happend");
+			});
+
+		console.log(stat);
+
+		const mimeType = stat.metaData["content-type"];
+
+		const stream = await this.client
+			.getObject(bucket, objectName)
+			.catch(error => {
+				console.log(error);
+				throw new BadRequestException("Oops Something wrong happend");
+			});
+
+		return {
+			stream,
+			mimeType,
+		};
 	}
 
-	async get(objetName: string, baseBucket: string = this.baseBucket) {
-		return this.client.getObject(baseBucket, objetName).catch(err => {
-			this.logger.log(err);
-			throw new HttpException(
-				"Oops Something wrong happend",
-				HttpStatus.BAD_REQUEST,
-			);
+	async update(
+		file: BufferedFile,
+		objectName: string,
+		bucket: string = this.baseBucket,
+	) {
+		this.client
+			.putObject(bucket, objectName, file.buffer, {
+				"Content-Type": file.mimetype,
+			})
+			.catch(error => {
+				console.log(error);
+				throw new BadRequestException("Error uploading file");
+			});
+
+		return {
+			bucket: bucket,
+			fileName: objectName,
+		};
+	}
+
+	async delete(objectName: string, bucket: string = this.baseBucket) {
+		// if the file already exists, throw an error
+		const fileExists = await this.client
+			.statObject(bucket, objectName)
+			.catch(error => {
+				if (error.code === "NotFound") {
+					return false;
+				}
+
+				console.log(error);
+				throw new BadRequestException("Error uploading file");
+			});
+
+		if (!fileExists) {
+			throw new BadRequestException("File does not exist");
+		}
+
+		await this.client.removeObject(bucket, objectName).catch(error => {
+			console.log(error);
+			throw new BadRequestException("Oops Something wrong happend");
 		});
+
+		return {
+			message: "File deleted",
+		};
 	}
 }
