@@ -43,47 +43,40 @@ export class KeycloakService {
 	) {}
 
 	async createUser(newUser: NewUser) {
-		try {
-			const token = await this.loginClient();
-			const credential = new CredentialRepresentation();
-			credential.type = "password";
-			credential.value = newUser.password;
-			credential.temporary = false;
-			const userRepresentation = new UserRepresentation();
-			userRepresentation.credentials = [credential];
-			userRepresentation.username = newUser.email;
-			userRepresentation.email = newUser.email;
-			userRepresentation.firstName = newUser.firstName;
-			userRepresentation.lastName = newUser.lastName;
-			userRepresentation.enabled = true;
-			userRepresentation.emailVerified = false;
+		const token = await this.loginClient();
+		const credential = new CredentialRepresentation();
+		credential.type = "password";
+		credential.value = newUser.password;
+		credential.temporary = false;
+		const userRepresentation = new UserRepresentation();
+		userRepresentation.credentials = [credential];
+		userRepresentation.username = newUser.email;
+		userRepresentation.email = newUser.email;
+		userRepresentation.firstName = newUser.firstName;
+		userRepresentation.lastName = newUser.lastName;
+		userRepresentation.enabled = true;
+		userRepresentation.emailVerified = false;
 
-			await firstValueFrom(
-				this.httpService.post(
-					`${this.keycloakAdminUrl}/users`,
-					userRepresentation,
-					{
-						headers: {
-							"Authorization": `Bearer ${token}`,
-							"Content-Type": "application/json",
-						},
+		await firstValueFrom(
+			this.httpService.post(
+				`${this.keycloakAdminUrl}/users`,
+				userRepresentation,
+				{
+					headers: {
+						"Authorization": `Bearer ${token}`,
+						"Content-Type": "application/json",
 					},
-				),
-			);
+				},
+			),
+		);
 
-			const users = await this.getUsersByUserName(newUser.email, token);
+		const users = await this.getUsersByUserName(newUser.email, token);
 
-			if (users.length === 0) {
-				throw new BadRequestException("User not created");
-			}
-
-			return users[0];
-		} catch (error) {
-			console.log("create user exception ", error);
-			throw new BadRequestException(
-				`Failed to create user: ${error.message}`,
-			);
+		if (users.length === 0) {
+			throw new BadRequestException("User not created");
 		}
+
+		return users[0];
 	}
 
 	async getUsersByUserName(
@@ -98,44 +91,34 @@ export class KeycloakService {
 			username,
 		});
 
-		try {
-			const response = await firstValueFrom(
-				this.httpService.get<UserRepresentation[]>(
-					`${url}?${params.toString()}`,
-					{
-						headers: {
-							"Authorization": `Bearer ${token}`,
-							"Content-Type": "application/json",
-						},
-					},
-				),
-			);
-			return response.data;
-		} catch (error) {
-			throw new BadRequestException(
-				`Failed to fetch users: ${error.message}`,
-			);
-		}
-	}
-
-	async getUser(userId: string): Promise<UserRepresentation> {
-		const url = `${this.keycloakAdminUrl}/users/${userId}`;
-		try {
-			const token = await this.loginClient();
-			const response = await firstValueFrom(
-				this.httpService.get(url, {
+		const response = await firstValueFrom(
+			this.httpService.get<UserRepresentation[]>(
+				`${url}?${params.toString()}`,
+				{
 					headers: {
 						"Authorization": `Bearer ${token}`,
 						"Content-Type": "application/json",
 					},
-				}),
-			);
-			return response.data;
-		} catch (error) {
-			throw new BadRequestException(
-				`Failed to fetch user with ID ${userId}: ${error.message}`,
-			);
-		}
+				},
+			),
+		);
+
+		return response.data;
+	}
+
+	async getUser(userId: string): Promise<UserRepresentation> {
+		const url = `${this.keycloakAdminUrl}/users/${userId}`;
+
+		const token = await this.loginClient();
+		const response = await firstValueFrom(
+			this.httpService.get(url, {
+				headers: {
+					"Authorization": `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+			}),
+		);
+		return response.data;
 	}
 
 	async loginClient(): Promise<string> {
@@ -144,25 +127,17 @@ export class KeycloakService {
 		formData.append("client_secret", this.clientSecret);
 		formData.append("grant_type", "client_credentials");
 
-		try {
-			const response = await firstValueFrom(
-				this.httpService.post(
-					this.keycloakLoginUrl,
-					formData.toString(),
-					{
-						headers: {
-							"Content-Type": "application/x-www-form-urlencoded",
-						},
-					},
-				),
-			);
-			const { access_token } = response.data;
-			return access_token;
-		} catch (error) {
-			throw new BadRequestException(
-				`Client login failed: ${error.message}`,
-			);
-		}
+		const response = await firstValueFrom(
+			this.httpService.post(this.keycloakLoginUrl, formData.toString(), {
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded",
+				},
+			}),
+		);
+
+		const { access_token } = response.data;
+
+		return access_token;
 	}
 
 	async loginUser(
@@ -178,24 +153,18 @@ export class KeycloakService {
 		formData.append("password", password);
 		formData.append("scope", "openid");
 
-		try {
-			const response = await firstValueFrom(
-				this.httpService.post(
-					`${this.keycloakDomain}/realms/${this.keycloakRealm}/protocol/openid-connect/token`,
-					formData.toString(),
-					{
-						headers: {
-							"Content-Type": "application/x-www-form-urlencoded",
-						},
+		const response = await firstValueFrom(
+			this.httpService.post(
+				`${this.keycloakDomain}/realms/${this.keycloakRealm}/protocol/openid-connect/token`,
+				formData.toString(),
+				{
+					headers: {
+						"Content-Type": "application/x-www-form-urlencoded",
 					},
-				),
-			);
-			return response.data;
-		} catch (error) {
-			throw new BadRequestException(
-				`User login failed: ${error.message}`,
-			);
-		}
+				},
+			),
+		);
+		return response.data;
 	}
 
 	async refreshToken(refreshToken: string): Promise<LoginRepresentation> {
@@ -206,23 +175,17 @@ export class KeycloakService {
 		formData.append("grant_type", "refresh_token");
 		formData.append("refresh_token", refreshToken);
 
-		try {
-			const response = await firstValueFrom(
-				this.httpService.post(
-					`${this.keycloakDomain}/realms/${this.keycloakRealm}/protocol/openid-connect/token`,
-					formData.toString(),
-					{
-						headers: {
-							"Content-Type": "application/x-www-form-urlencoded",
-						},
+		const response = await firstValueFrom(
+			this.httpService.post(
+				`${this.keycloakDomain}/realms/${this.keycloakRealm}/protocol/openid-connect/token`,
+				formData.toString(),
+				{
+					headers: {
+						"Content-Type": "application/x-www-form-urlencoded",
 					},
-				),
-			);
-			return response.data;
-		} catch (error) {
-			throw new BadRequestException(
-				`Token refresh failed: ${error.message}`,
-			);
-		}
+				},
+			),
+		);
+		return response.data;
 	}
 }
