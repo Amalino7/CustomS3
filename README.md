@@ -1,59 +1,122 @@
-# API documentation
+# API Documentation
 
-Using curl in unix
-If you use cmd use the same commands but replace \ with ^ and the '' with "" and the " inside the json with \"
+This guide provides details on how to interact with the API using `curl` commands on Unix-based systems. If you are using a Windows command prompt, replace `\` with `^` and change `'` to `""`. Additionally, escape the `"` inside JSON data with `\"`.
 
-First create a user
+## Table of Contents
 
+1. [Create a User](#1-create-a-user)
+2. [Login](#2-login)
+3. [Refresh](#3-refresh-access-token)
+4. [Get user data](#4-get-user-data)
+5. [Upload a file](#5-upload-a-file)
+6. [Download a file](#6-get-a-file-by-name)
+7. [Update a file](#7-update-a-file-using-its-name)
+8. [Delete a file](#8-delete-a-file)
+
+---
+
+## 1. Create a User
+
+To create a new user, send a POST request with the user's details.
+
+```bash
 curl -X POST "http://localhost:3000/users" \
- -H "Content-Type: application/json" \
- -d '{
-"fistName": "new_user_firstname",
-"lastName": "new_user_lastname",
-"password": "password",
-"email": "newuser@example.com"
-}'
+     -H "Content-Type: application/json" \
+     -d '{
+           "firstName": "new_user_firstname",
+           "lastName": "new_user_lastname",
+           "password": "password",
+           "email": "newuser@example.com"
+         }'
+```
 
-Then login:
+## 2. Login
+
+Log in as an existing user, send a POST request with your email and password.
+You should receive an access token(lasts 5 minutes) and a refresh token (lasts 30 minutes):
+
+```bash
 curl -X POST "http://localhost:3000/users/login" \
  -H "Content-Type: application/json" \
  -d '{
 "email": "user@example.com",
 "password": "password"
 }'
+```
 
-after doing that you will receive an access token(lasts 5 minutes) and a refresh token (lasts 30 minutes)
+## 3. Refresh Access Token
 
-You can use a refresh token to get a new access token
+After the access token expires a new one can be received via the refresh token.
+
+```bash
 curl -X POST "http://localhost:3000/users/refresh" \
  -H "Content-Type: application/json" \
  -d '{
 "refreshToken": "your_refresh_token"
 }'
+```
 
-Use an access token to get user data
+## 4. Get user data
+
+```bash
+Use an access token to retrieve user data by id.
 curl -X GET "http://localhost:3000/users/{id}" \
  -H "Authorization: Bearer YOUR_TOKEN"
+```
 
-Use an access token to upload a file
+## 5. Upload a file
+
+Use an access token in the POST request to upload a file.
+Specify the path to the file.
+
+```bash
 curl -X POST "http://localhost:3000/files" \
  -H "Authorization: Bearer YOUR_TOKEN" \
  -H "Content-Type: multipart/form-data" \
  -F "file=@/path/to/your/file"
+```
 
-Get a file using its name and access token
+## 6. Get a file by name
+
+Get a file using its name and an access token in the POST request.
+
+```bash
 curl -X GET "http://localhost:3000/files/{id}" \
  -H "Authorization: Bearer YOUR_TOKEN"
+```
 
-Update the file using its name and an access token
+### Note
+
+Add -o `FILE_NAME` or simply -O as curl flag to save the file to the given name.
+--output-file for Windows CMD
+
+## 7. Update a file using its name
+
+Update the file using its name and an access token in the PUT request.
+
+```bash
 curl -X PUT "http://localhost:3000/files/{id}" \
  -H "Authorization: Bearer YOUR_TOKEN" \
  -H "Content-Type: multipart/form-data" \
  -F "file=@/path/to/your/file"
+```
 
-Delete a file using an access token
+## 8. Delete a file
+
+To delete a file, use its name and your access token in a DELETE request.
+
+```bash
 curl -X DELETE "http://localhost:3000/files/{id}" \
  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+## NOTES
+
+-Replace {id} with the user id or the file name in the case of the file api.
+-Replace YOUR_TOKEN with a valid refresh or access token depending on the case.
+-Replace @/path/to/your/file with a valid path to a file on your machine.
 
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
