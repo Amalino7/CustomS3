@@ -9,6 +9,7 @@ import {
 	UploadedFile,
 	Res,
 	UseGuards,
+	BadRequestException,
 } from "@nestjs/common";
 import { FilesService } from "./files.service";
 import { FileInterceptor } from "@nestjs/platform-express";
@@ -39,6 +40,10 @@ export class FilesController {
 	})
 	@UseInterceptors(FileInterceptor("file"))
 	create(@UploadedFile() file: BufferedFile) {
+		if (!file) {
+			throw new BadRequestException("No file uploaded");
+		}
+
 		return this.filesService.create(file);
 	}
 
@@ -70,6 +75,10 @@ export class FilesController {
 	})
 	@UseInterceptors(FileInterceptor("file"))
 	update(@Param("id") id: string, @UploadedFile() file: BufferedFile) {
+		if (!file) {
+			throw new BadRequestException("No file uploaded");
+		}
+
 		return this.filesService.update(id, file);
 	}
 
