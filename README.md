@@ -1,6 +1,137 @@
+# Project documentation
+
+## Table of Contents
+
+I. [Building and running the app](#building-and-running-the-app)
+[Prerequisites](#prerequisites)
+[Setting the environment](#1-setting-the-environment)
+[Building and running the images](#2-building-and-running-the-project)
+[Accessing the application](#4-accessing-the-application)
+[Cleaning up](#5-stopping-the-containers)
+[Additional commands](#6-additional-commands)
+
+II. [Interacting with the API](#api-documentation)
+
+1. [Create a User](#1-create-a-user)
+2. [Login](#2-login)
+3. [Refresh](#3-refresh-access-token)
+4. [Get user data](#4-get-user-data)
+5. [Upload a file](#5-upload-a-file)
+6. [Download a file](#6-get-a-file-by-name)
+7. [Update a file](#7-update-a-file-using-its-name)
+8. [Delete a file](#8-delete-a-file)
+
+---
+
+# Building and running the app
+
+### Prerequisites
+
+- **Docker** installed: [Docker installation guide](https://docs.docker.com/get-docker/)
+- **Docker Compose** installed: [Docker Compose installation guide](https://docs.docker.com/compose/install/)
+
+---
+
+## 1. Setting the environment
+
+Rename .env.example to .env to use the default configuration.
+You can use the .env.example to make your own custom one.
+
+## 2. Building and Running the Project
+
+Now that you have the Dockerfile and `docker-compose.yml` file, you can use the following commands to build and run your project.
+
+### 1. **Build the Docker Images**
+
+To build the Docker image(s) for your project, run the following command in your project directory:
+
+```bash
+docker-compose build
+```
+
+This will build the Docker image(s) based on the configurations specified in the `docker-compose.yml` file and the `Dockerfile`.
+
+### 2. **Run the Project**
+
+Once the build is complete, start the containers using:
+
+```bash
+docker-compose up
+```
+
+This command will:
+
+- Start the containers defined in your `docker-compose.yml` file.
+- Expose the application on port 3000.
+- Attach the logs from the containers to your terminal.
+
+### 3. **Run in Detached Mode**
+
+If you want to run the containers in the background (detached mode), use the `-d` flag:
+
+```bash
+docker-compose up -d
+```
+
+This will run the containers in the background, and you won’t see the logs in your terminal.
+
+---
+
+## 4. Accessing the Application
+
+Once your containers are up and running, you should be able to access your application by navigating to:
+
+```
+http://localhost:3000
+```
+
+This is the public api that you can access.
+The way to use it is listed [here](#api-documentation).
+
+---
+
+## 5. Stopping the App and Cleanup
+
+### Stop the containers:
+
+```bash
+docker-compose down
+```
+
+This will stop and remove the containers. It won’t remove the images or volumes, so you can quickly start them again if needed.
+To remove the volumes add `-v` flag.
+
+### Remove unused containers, networks, and volumes:
+
+    ```bash
+    docker-compose down --volumes --rmi all
+    ```
+
+### Finally delete the files
+
+---
+
+## 6. Additional Commands
+
+Here are a few more useful commands:
+
+- **View logs of your containers:**
+
+    ```bash
+    docker-compose logs
+    ```
+
+- **Rebuild images:**
+
+    ```bash
+    docker-compose up --build
+    ```
+
+---
+
 # API Documentation
 
-This guide provides details on how to interact with the API using `curl` commands on Unix-based systems. If you are using a Windows command prompt, replace `\` with `^` and change `'` to `""`. Additionally, escape the `"` inside JSON data with `\"`.
+This guide provides details on how to interact with the API using `curl` commands on Unix-based systems and `cmd` (Windows Command Prompt).
 
 ## Table of Contents
 
@@ -19,6 +150,8 @@ This guide provides details on how to interact with the API using `curl` command
 
 To create a new user, send a POST request with the user's details.
 
+### Unix (`bash`)
+
 ```bash
 curl -X POST "http://localhost:3000/users" \
      -H "Content-Type: application/json" \
@@ -30,10 +163,20 @@ curl -X POST "http://localhost:3000/users" \
          }'
 ```
 
+### Windows (`cmd`)
+
+```cmd
+curl -X POST "http://localhost:3000/users" ^
+     -H "Content-Type: application/json" ^
+     -d "{\"firstName\": \"new_user_firstname\", \"lastName\": \"new_user_lastname\", \"password\": \"password\", \"email\": \"newuser@example.com\"}"
+```
+
 ## 2. Login
 
 Log in as an existing user, send a POST request with your email and password.
 You should receive an access token(lasts 5 minutes) and a refresh token (lasts 30 minutes):
+
+### Unix (`bash`)
 
 ```bash
 curl -X POST "http://localhost:3000/users/login" \
@@ -44,9 +187,19 @@ curl -X POST "http://localhost:3000/users/login" \
 }'
 ```
 
+### Windows (`cmd`)
+
+```cmd
+curl -X POST "http://localhost:3000/users/login" ^
+     -H "Content-Type: application/json" ^
+     -d "{\"email\": \"user@example.com\", \"password\": \"password\"}"
+```
+
 ## 3. Refresh Access Token
 
 After the access token expires a new one can be received via the refresh token.
+
+### Unix (`bash`)
 
 ```bash
 curl -X POST "http://localhost:3000/users/refresh" \
@@ -56,7 +209,17 @@ curl -X POST "http://localhost:3000/users/refresh" \
 }'
 ```
 
+### Windows (`cmd`)
+
+```cmd
+curl -X POST "http://localhost:3000/users/refresh" ^
+     -H "Content-Type: application/json" ^
+     -d "{\"refreshToken\": \"your_refresh_token\"}"
+```
+
 ## 4. Get user data
+
+### Unix (`bash`)
 
 ```bash
 Use an access token to retrieve user data by id.
@@ -64,10 +227,19 @@ curl -X GET "http://localhost:3000/users/{id}" \
  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
+### Windows (`cmd`)
+
+```cmd
+curl -X GET "http://localhost:3000/users/{id}" ^
+     -H "Authorization: Bearer YOUR_TOKEN"
+```
+
 ## 5. Upload a file
 
 Use an access token in the POST request to upload a file.
 Specify the path to the file.
+
+### Unix (`bash`)
 
 ```bash
 curl -X POST "http://localhost:3000/files" \
@@ -76,13 +248,31 @@ curl -X POST "http://localhost:3000/files" \
  -F "file=@/path/to/your/file"
 ```
 
+### Windows (`cmd`)
+
+```cmd
+curl -X POST "http://localhost:3000/files" ^
+     -H "Authorization: Bearer YOUR_TOKEN" ^
+     -H "Content-Type: multipart/form-data" ^
+     -F "file=@C:\path\to\your\file"
+```
+
 ## 6. Get a file by name
 
 Get a file using its name and an access token in the POST request.
 
+### Unix (`bash`)
+
 ```bash
 curl -X GET "http://localhost:3000/files/{id}" \
  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Windows (`cmd`)
+
+```cmd
+curl -X GET "http://localhost:3000/files/{id}" ^
+     -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 ### Note
@@ -94,6 +284,8 @@ Add -o `FILE_NAME` or simply -O as curl flag to save the file to the given name.
 
 Update the file using its name and an access token in the PUT request.
 
+### Unix (`bash`)
+
 ```bash
 curl -X PUT "http://localhost:3000/files/{id}" \
  -H "Authorization: Bearer YOUR_TOKEN" \
@@ -101,22 +293,44 @@ curl -X PUT "http://localhost:3000/files/{id}" \
  -F "file=@/path/to/your/file"
 ```
 
+### Windows (`cmd`)
+
+```cmd
+curl -X PUT "http://localhost:3000/files/{id}" ^
+     -H "Authorization: Bearer YOUR_TOKEN" ^
+     -H "Content-Type: multipart/form-data" ^
+     -F "file=@C:\path\to\your\file"
+```
+
 ## 8. Delete a file
 
 To delete a file, use its name and your access token in a DELETE request.
+
+### Unix (`bash`)
 
 ```bash
 curl -X DELETE "http://localhost:3000/files/{id}" \
  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
+### Windows (`cmd`)
+
+```cmd
+curl -X DELETE "http://localhost:3000/files/{id}" ^
+     -H "Authorization: Bearer YOUR_TOKEN"
+```
+
 ---
 
 ## NOTES
 
--Replace {id} with the user id or the file name in the case of the file api.
--Replace YOUR_TOKEN with a valid refresh or access token depending on the case.
--Replace @/path/to/your/file with a valid path to a file on your machine.
+- Replace `{id}` with the user id or the file name in the case of the file api.
+- Replace `YOUR_TOKEN` with a valid refresh or access token depending on the case.
+- Replace `@/path/to/your/file` with a valid path to a file on your machine.
+
+---
+
+# Nestjs default
 
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
