@@ -16,7 +16,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { BufferedFile } from "src/minio-client/file.model";
 import { ApiBearerAuth, ApiBody, ApiConsumes } from "@nestjs/swagger";
 import { Response } from "express";
-import { RoleGuard, Roles } from "nest-keycloak-connect";
+import { AuthGuard, RoleGuard, Roles } from "nest-keycloak-connect";
 
 @Controller("files")
 @ApiBearerAuth()
@@ -48,8 +48,7 @@ export class FilesController {
 	}
 
 	@Get(":id")
-	@Roles({ roles: ["realm:admin", "realm:user"] })
-	@UseGuards(RoleGuard)
+	@UseGuards(AuthGuard)
 	async findOne(@Res() res: Response, @Param("id") id: string) {
 		const file = await this.filesService.findOne(id);
 

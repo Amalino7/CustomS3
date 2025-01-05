@@ -1,5 +1,5 @@
 import { HttpService } from "@nestjs/axios";
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ConfigVariables } from "src/config/configuration";
 import { UserRepresentation } from "../dto/keycloak/UserRepresentation";
@@ -74,13 +74,15 @@ export class KeycloakService {
 			const users = await this.getUsersByUserName(newUser.email, token);
 
 			if (users.length === 0) {
-				throw new Error("User not created");
+				throw new BadRequestException("User not created");
 			}
 
 			return users[0];
 		} catch (error) {
 			console.log("create user exception ", error);
-			throw new Error(`Failed to create user: ${error.message}`);
+			throw new BadRequestException(
+				`Failed to create user: ${error.message}`,
+			);
 		}
 	}
 
@@ -110,7 +112,9 @@ export class KeycloakService {
 			);
 			return response.data;
 		} catch (error) {
-			throw new Error(`Failed to fetch users: ${error.message}`);
+			throw new BadRequestException(
+				`Failed to fetch users: ${error.message}`,
+			);
 		}
 	}
 
@@ -128,7 +132,7 @@ export class KeycloakService {
 			);
 			return response.data;
 		} catch (error) {
-			throw new Error(
+			throw new BadRequestException(
 				`Failed to fetch user with ID ${userId}: ${error.message}`,
 			);
 		}
@@ -155,7 +159,9 @@ export class KeycloakService {
 			const { access_token } = response.data;
 			return access_token;
 		} catch (error) {
-			throw new Error(`Client login failed: ${error.message}`);
+			throw new BadRequestException(
+				`Client login failed: ${error.message}`,
+			);
 		}
 	}
 
@@ -186,7 +192,9 @@ export class KeycloakService {
 			);
 			return response.data;
 		} catch (error) {
-			throw new Error(`User login failed: ${error.message}`);
+			throw new BadRequestException(
+				`User login failed: ${error.message}`,
+			);
 		}
 	}
 
@@ -212,7 +220,9 @@ export class KeycloakService {
 			);
 			return response.data;
 		} catch (error) {
-			throw new Error(`Token refresh failed: ${error.message}`);
+			throw new BadRequestException(
+				`Token refresh failed: ${error.message}`,
+			);
 		}
 	}
 }

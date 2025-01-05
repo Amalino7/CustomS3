@@ -18,10 +18,7 @@ export class MinioClientService {
 		const bucketExists = await this.client.bucketExists(bucket);
 
 		if (!bucketExists) {
-			await this.client.makeBucket(bucket).catch(error => {
-				console.log(error);
-				throw new BadRequestException("Error creating bucket");
-			});
+			throw new BadRequestException("Bucket does not exist");
 		}
 
 		// if the file already exists, throw an error
