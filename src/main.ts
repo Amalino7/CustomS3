@@ -11,6 +11,7 @@ async function bootstrap() {
 		.setDescription("An API for a Custom S3 application")
 		.setVersion("1.0")
 		.addServer("http://localhost:3000")
+		.addBearerAuth()
 		.build();
 
 	const document = SwaggerModule.createDocument(app, config);

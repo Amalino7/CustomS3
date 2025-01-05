@@ -8,18 +8,23 @@ import {
 	UseInterceptors,
 	UploadedFile,
 	Res,
+	UseGuards,
 } from "@nestjs/common";
 import { FilesService } from "./files.service";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { BufferedFile } from "src/minio-client/file.model";
-import { ApiBody, ApiConsumes } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiBody, ApiConsumes } from "@nestjs/swagger";
 import { Response } from "express";
+import { RoleGuard, Roles } from "nest-keycloak-connect";
 
 @Controller("files")
+@ApiBearerAuth()
 export class FilesController {
 	constructor(private readonly filesService: FilesService) {}
 
 	@Post()
+	@Roles({ roles: ["realm:admin"] })
+	@UseGuards(RoleGuard)
 	@ApiConsumes("multipart/form-data")
 	@ApiBody({
 		schema: {
@@ -38,6 +43,8 @@ export class FilesController {
 	}
 
 	@Get(":id")
+	@Roles({ roles: ["realm:admin", "realm:user"] })
+	@UseGuards(RoleGuard)
 	async findOne(@Res() res: Response, @Param("id") id: string) {
 		const file = await this.filesService.findOne(id);
 
@@ -47,6 +54,8 @@ export class FilesController {
 	}
 
 	@Put(":id")
+	@Roles({ roles: ["realm:admin"] })
+	@UseGuards(RoleGuard)
 	@ApiConsumes("multipart/form-data")
 	@ApiBody({
 		schema: {
@@ -65,6 +74,8 @@ export class FilesController {
 	}
 
 	@Delete(":id")
+	@Roles({ roles: ["realm:admin"] })
+	@UseGuards(RoleGuard)
 	remove(@Param("id") id: string) {
 		return this.filesService.remove(id);
 	}
