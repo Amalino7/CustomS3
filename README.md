@@ -1,3 +1,60 @@
+# API documentation
+
+Using curl in unix
+If you use cmd use the same commands but replace \ with ^ and the '' with "" and the " inside the json with \"
+
+First create a user
+
+curl -X POST "http://localhost:3000/users" \
+ -H "Content-Type: application/json" \
+ -d '{
+"fistName": "new_user_firstname",
+"lastName": "new_user_lastname",
+"password": "password",
+"email": "newuser@example.com"
+}'
+
+Then login:
+curl -X POST "http://localhost:3000/users/login" \
+ -H "Content-Type: application/json" \
+ -d '{
+"email": "user@example.com",
+"password": "password"
+}'
+
+after doing that you will receive an access token(lasts 5 minutes) and a refresh token (lasts 30 minutes)
+
+You can use a refresh token to get a new access token
+curl -X POST "http://localhost:3000/users/refresh" \
+ -H "Content-Type: application/json" \
+ -d '{
+"refreshToken": "your_refresh_token"
+}'
+
+Use an access token to get user data
+curl -X GET "http://localhost:3000/users/{id}" \
+ -H "Authorization: Bearer YOUR_TOKEN"
+
+Use an access token to upload a file
+curl -X POST "http://localhost:3000/files" \
+ -H "Authorization: Bearer YOUR_TOKEN" \
+ -H "Content-Type: multipart/form-data" \
+ -F "file=@/path/to/your/file"
+
+Get a file using its name and access token
+curl -X GET "http://localhost:3000/files/{id}" \
+ -H "Authorization: Bearer YOUR_TOKEN"
+
+Update the file using its name and an access token
+curl -X PUT "http://localhost:3000/files/{id}" \
+ -H "Authorization: Bearer YOUR_TOKEN" \
+ -H "Content-Type: multipart/form-data" \
+ -F "file=@/path/to/your/file"
+
+Delete a file using an access token
+curl -X DELETE "http://localhost:3000/files/{id}" \
+ -H "Authorization: Bearer YOUR_TOKEN"
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
