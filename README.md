@@ -3,12 +3,13 @@
 ## Table of Contents
 
 I. [Building and running the app](#building-and-running-the-app)
-[Prerequisites](#prerequisites)
-[Setting the environment](#1-setting-the-environment)
-[Building and running the images](#2-building-and-running-the-project)
-[Accessing the application](#4-accessing-the-application)
-[Cleaning up](#5-stopping-the-containers)
-[Additional commands](#6-additional-commands)
+
+1. [Prerequisites](#prerequisites)
+2. [Setting the environment](#1-setting-the-environment)
+3. [Building and running the images](#2-building-and-running-the-project)
+4. [Accessing the application](#4-accessing-the-application)
+5. [Cleaning up](#5-stopping-the-containers)
+6. [Additional commands](#6-additional-commands)
 
 II. [Interacting with the API](#api-documentation)
 
